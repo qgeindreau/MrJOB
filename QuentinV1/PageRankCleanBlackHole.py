@@ -8,15 +8,39 @@ class PageRank(MRJob):
     global initial_weight
     global cout
     global nb_iter
+    global NBlackHole
+    global clearing_iterator
+    clearing_iterator = 0
     cout=0.15
     nb_iter=10
+    NBlackHole=set()
+    ambigousBlackHole=set()
+    def prep_clr(self,_,line):
+        global NBlackHole
+        NBlackHole=set()
+        yield 1,line
+        
+        
+    def init_clear(self, _, line):
+        line = line.split('\t')
+        try:
+            NBlackHole.add(line[0])
+            yield _,line[0]+"\t"+line[1]
+        except: pass
+        
+    def clear(self, _, line):
+        line = line.split('\t')
+        if line[1] in NBlackHole:
+            yield _,line[0]+"\t"+line[1]
+            
+            
+            
+            
     def recup_resend(self, _, line):
         '''On fait un peut de ménage, ca fait disparaitre les lignes vides et non conforme'''
         line = line.split('\t')
         try:
             yield line[0], line[1]
-            
-            
         except:
             pass
 
@@ -58,9 +82,8 @@ class PageRank(MRJob):
 
     def sortie(self,key,values):
         yield key, values[0]['weight']
-        
     def steps(self):
-        return [
+        return [MRStep(mapper=self.prep_clr),MRStep(mapper=self.init_clear),MRStep(mapper=self.clear)]*4+[
             MRStep(mapper=self.recup_resend, reducer=self.recup_and_list),
             MRStep(reducer=self.set_w0),
             MRStep(mapper=self.set_nodew0)]+[ MRStep(mapper=self.nextrank1, reducer=self.nextrank2),

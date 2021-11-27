@@ -83,7 +83,7 @@ class PageRank(MRJob):
     def sortie(self,key,values):
         yield key, values[0]['weight']
     def steps(self):
-        return [MRStep(mapper=self.prep_clr),MRStep(mapper=self.init_clear),MRStep(mapper=self.clear)]*4+[
+        return [MRStep(mapper=self.prep_clr),MRStep(mapper=self.init_clear),MRStep(mapper=self.clear)]*clearing_iterator+[
             MRStep(mapper=self.recup_resend, reducer=self.recup_and_list),
             MRStep(reducer=self.set_w0),
             MRStep(mapper=self.set_nodew0)]+[ MRStep(mapper=self.nextrank1, reducer=self.nextrank2),
